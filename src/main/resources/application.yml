@@ -1,0 +1,86 @@
+# Common configurations
+spring:
+  application:
+    name: tradestar
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+# Swagger UI Configuration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-development-only}
+  expiration: 86400000 # 24 hours in milliseconds
+
+# Server Configuration
+server:
+  port: 8080
+
+---
+# Development Environment
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:tradestardb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    com.vrushankpatel.tradestar: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+# QA Environment
+spring:
+  config:
+    activate:
+      on-profile: qa
+  datasource:
+    url: jdbc:h2:file:./tradestardb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+logging:
+  level:
+    com.vrushankpatel.tradestar: INFO
+    org.hibernate.SQL: DEBUG
+
+---
+# Production Environment
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:tradestardb}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+logging:
+  level:
+    com.vrushankpatel.tradestar: WARN
+    org.hibernate.SQL: INFO
