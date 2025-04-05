@@ -33,7 +33,7 @@ public class AuthenticationService {
      * @param request the registration request containing user details
      * @return AuthenticationResponse containing the JWT token
      */
-    public AuthenticationResponse register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already registered");
         }
@@ -47,9 +47,9 @@ public class AuthenticationService {
                 .build();
 
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
+        return RegisterResponse.builder()
+                .message("User registered successfully")
+                .email(user.getEmail())
                 .build();
     }
 
