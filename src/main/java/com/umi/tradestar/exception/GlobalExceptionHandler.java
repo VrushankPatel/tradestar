@@ -2,6 +2,7 @@ package com.umi.tradestar.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -38,6 +40,31 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleOrderProcessingException(OrderProcessingException ex, WebRequest request) {
         logger.error("Order processing exception occurred:", ex);
         return createErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Object> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex, WebRequest request) {
+        logger.error("Method not supported:", ex);
+        // return createErrorResponse(
+        //     "METHOD_NOT_SUPPORTED",
+        //     String.format("The %s method is not supported for this request. Supported methods are: %s",
+        //             ex.getMethod(), String.join(", ", ex.getSupportedHttpMethods())),
+        //     HttpStatus.METHOD_NOT_ALLOWED
+        // );
+
+        return createErrorResponse(
+    "METHOD_NOT_SUPPORTED",
+    String.format("The %s method is not supported for this request. Supported methods are: %s",
+        ex.getMethod(),
+        ex.getSupportedHttpMethods().stream()
+            .map(HttpMethod::name) // or .toString()
+            .collect(Collectors.joining(", "))
+    ),
+    HttpStatus.METHOD_NOT_ALLOWED
+);
+
+        
+
     }
 
     @ExceptionHandler(Exception.class)
