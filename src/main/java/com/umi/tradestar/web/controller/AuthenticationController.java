@@ -30,7 +30,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Register a new user with the provided details")
-    public ResponseEntity<AuthenticationResponse> register(
+    public ResponseEntity<RegisterResponse> register(
             @Valid @RequestBody RegisterRequest request
     ) {
         return ResponseEntity.ok(authenticationService.register(request));

@@ -4,6 +4,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.1-blue.svg)
 ![QuickFIX/J](https://img.shields.io/badge/QuickFIX/J-2.3.1-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
+[![Java CI with Maven](https://github.com/VrushankPatel/tradestar/actions/workflows/maven.yml/badge.svg)](https://github.com/VrushankPatel/tradestar/actions/workflows/maven.yml)
 
 Tradestar is an enterprise-grade trading gateway platform that provides robust market connectivity through industry-standard protocols. Built with Spring Boot, it offers a sophisticated environment for simulating and testing trading operations with high-performance market data handling.
 

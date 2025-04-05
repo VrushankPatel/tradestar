@@ -7,6 +7,7 @@ import com.umi.tradestar.security.JwtService;
 import com.umi.tradestar.web.dto.AuthenticationRequest;
 import com.umi.tradestar.web.dto.AuthenticationResponse;
 import com.umi.tradestar.web.dto.RegisterRequest;
+import com.umi.tradestar.web.dto.RegisterResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
