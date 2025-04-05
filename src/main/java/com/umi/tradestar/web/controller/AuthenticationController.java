@@ -4,6 +4,7 @@ import com.umi.tradestar.service.AuthenticationService;
 import com.umi.tradestar.web.dto.AuthenticationRequest;
 import com.umi.tradestar.web.dto.AuthenticationResponse;
 import com.umi.tradestar.web.dto.RegisterRequest;
+import com.umi.tradestar.web.dto.RegisterResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
