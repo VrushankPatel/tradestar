@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class handling user authentication operations including registration and login.
@@ -45,6 +46,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? request.getRole() : Role.TRADER)
+                .enabled(true) // Ensure the user is enabled by default
                 .build();
 
         userRepository.save(user);
@@ -75,5 +77,47 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
+    }
+    
+    /**
+     * Enables a user account.
+     *
+     * @param email the email of the user to enable
+     * @return true if the user was enabled, false if the user was not found
+     */
+    @Transactional
+    public boolean enableUser(String email) {
+        int updated = userRepository.updateEnabledStatus(email, true);
+        return updated > 0;
+    }
+    
+    /**
+     * Disables a user account.
+     *
+     * @param email the email of the user to disable
+     * @return true if the user was disabled, false if the user was not found
+     */
+    @Transactional
+    public boolean disableUser(String email) {
+        int updated = userRepository.updateEnabledStatus(email, false);
+        return updated > 0;
+    }
+    
+    /**
+     * Directly enables a user in the database without requiring authentication.
+     * This is a temporary solution for development purposes only.
+     *
+     * @param email the email of the user to enable
+     * @return true if the user was enabled, false if the user was not found
+     */
+    @Transactional
+    public boolean directEnableUser(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    user.setEnabled(true);
+                    userRepository.save(user);
+                    return true;
+                })
+                .orElse(false);
     }
 }

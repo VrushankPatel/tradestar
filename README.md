@@ -77,6 +77,43 @@ Access the Swagger UI documentation at:
 http://localhost:8080/swagger-ui.html
 ```
 
+## Key API Endpoints
+
+Here are some of the core authentication and user management endpoints:
+
+### Authentication
+
+*   **Register User**: `POST /api/v1/auth/register`
+    *   Registers a new user with the `TRADER` role by default.
+    *   Request Body: `RegisterRequest` JSON (firstName, lastName, email, password, [role - optional])
+    *   Publicly accessible.
+
+*   **Authenticate User**: `POST /api/v1/auth/authenticate`
+    *   Authenticates a user and returns a JWT token.
+    *   Request Body: `AuthenticationRequest` JSON (email, password)
+    *   Publicly accessible.
+
+### User Management (Requires Authentication - ADMIN Role)
+
+*   **Enable User Account**: `POST /api/v1/auth/enable/{email}`
+    *   Enables a specific user account.
+    *   Requires Authentication and `ADMIN` role.
+
+*   **Disable User Account**: `POST /api/v1/auth/disable/{email}`
+    *   Disables a specific user account.
+    *   Requires Authentication and `ADMIN` role.
+
+### Development/Setup Endpoints (No Authentication Required)
+
+*   **Setup Initial Admin**: `POST /api/v1/auth/setup-admin`
+    *   Registers a new user and forces their role to `ADMIN`. Intended for initial setup in development.
+    *   Request Body: `RegisterRequest` JSON (firstName, lastName, email, password) - `role` is ignored and set to ADMIN.
+    *   Publicly accessible. **Should be secured or removed in production.**
+
+*   **Directly Enable User**: `POST /api/v1/auth/direct-enable/{email}`
+    *   Directly enables a user account in the database. Useful for development if an account becomes disabled and you cannot log in as admin.
+    *   Publicly accessible. **Should be secured or removed in production.**
+
 ## Contributing
 
 1. Fork the project
