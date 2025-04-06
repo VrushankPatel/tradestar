@@ -28,15 +28,22 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
-        logger.error("Authentication exception occurred:", ex);
+        // Log invalid credentials at INFO level to reduce noise, but log other authentication issues at ERROR level
+        if (AuthenticationException.ERROR_CODE_INVALID_CREDENTIALS.equals(ex.getErrorCode())) {
+            logger.info("Authentication failed: Invalid credentials attempt");
+        } else {
+            logger.error("Authentication exception occurred:", ex);
+        }
         return createErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
-        logger.error("Bad credentials:", ex);
-        return createErrorResponse("AUTH001", "Invalid username or password", HttpStatus.UNAUTHORIZED);
-    }
+    // BadCredentialsException is now caught and wrapped in AuthenticationException in the service layer
+    // so this handler is no longer needed
+    // @ExceptionHandler(BadCredentialsException.class)
+    // public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
+    //     logger.error("Bad credentials:", ex);
+    //     return createErrorResponse("AUTH001", "Invalid username or password", HttpStatus.UNAUTHORIZED);
+    // }
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<Object> handleDisabledException(DisabledException ex, WebRequest request) {

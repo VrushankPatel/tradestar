@@ -63,27 +63,32 @@ public class AuthenticationService {
      * @return AuthenticationResponse containing the JWT token
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new com.umi.tradestar.exception.AuthenticationException(
-                    com.umi.tradestar.exception.AuthenticationException.ERROR_CODE_USER_NOT_FOUND, 
-                    "User not found"));
-        
-        // Check if the user account is enabled
-        if (!user.isEnabled()) {
-            throw com.umi.tradestar.exception.AuthenticationException.userDisabled();
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+            
+            var user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new com.umi.tradestar.exception.AuthenticationException(
+                        com.umi.tradestar.exception.AuthenticationException.ERROR_CODE_USER_NOT_FOUND, 
+                        "User not found"));
+            
+            // Check if the user account is enabled
+            if (!user.isEnabled()) {
+                throw com.umi.tradestar.exception.AuthenticationException.userDisabled();
+            }
+            
+            var jwtToken = jwtService.generateToken(user);
+            return AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build();
+        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
+            // Wrap Spring Security's BadCredentialsException in our custom AuthenticationException
+            throw com.umi.tradestar.exception.AuthenticationException.invalidCredentials();
         }
-
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
     }
     
     /**
