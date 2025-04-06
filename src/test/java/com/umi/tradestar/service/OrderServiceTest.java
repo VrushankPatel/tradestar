@@ -13,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 
@@ -26,13 +28,17 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-@SpringBootTest(classes = {TradestarApplication.class, TestSecurityConfig.class})
+@SpringBootTest(classes = {TradestarApplication.class})
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Import(TestSecurityConfig.class)
+@ActiveProfiles("test")
 class OrderServiceTest {
 
-    @Mock
+    @MockBean
     private OrderRepository orderRepository;
 
     @Mock
@@ -41,14 +47,15 @@ class OrderServiceTest {
     @Mock
     private Authentication authentication;
 
+    @Autowired
     private OrderService orderService;
+
     private User testUser;
     private Order testOrder;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        orderService = new OrderService(orderRepository);
         
         // Setup test user
         testUser = User.builder()
@@ -101,5 +108,10 @@ class OrderServiceTest {
         assertThrows(IllegalArgumentException.class, () -> {
             orderService.createOrder(testOrder);
         });
+    }
+
+    @Test
+    public void testOrderService() {
+        // Your test code here
     }
 }

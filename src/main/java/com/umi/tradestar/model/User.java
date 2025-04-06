@@ -86,4 +86,25 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return enabled;
     }
+    
+    // Explicit getter methods to ensure they're available during compilation
+    public String getEmail() {
+        return email;
+    }
+    
+    public String getFirstName() {
+        return firstName;
+    }
+    
+    public String getLastName() {
+        return lastName;
+    }
+    
+    public Long getId() {
+        return id;
+    }
+    
+    public Role getRole() {
+        return role;
+    }
 }

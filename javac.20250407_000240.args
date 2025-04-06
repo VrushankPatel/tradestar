@@ -1,0 +1,3 @@
+-cp
+/Users/vrushank/Desktop/WORKSPACE/Tradestar/target/classes:/Users/vrushank/.m2/repository/org/keycloak/keycloak-spring-boot-starter/23.0.3/keycloak-spring-boot-starter-23.0.3.jar:/Users/vrushank/.m2/repository/org/keycloak/keycloak-spring-security-adapter/23.0.3/keycloak-spring-security-adapter-23.0.3.jar
+/Users/vrushank/Desktop/WORKSPACE/Tradestar/src/main/java/com/umi/tradestar/config/KeycloakSecurityAdapter.java
