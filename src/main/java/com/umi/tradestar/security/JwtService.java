@@ -76,7 +76,16 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (io.jsonwebtoken.security.WeakKeyException ex) {
+            // Log the error for debugging purposes
+            logger.error("JWT key is too weak. Using a secure key instead.", ex);
+            // Generate a secure key using the recommended method
+            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        }
     }
+    
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JwtService.class);
 }

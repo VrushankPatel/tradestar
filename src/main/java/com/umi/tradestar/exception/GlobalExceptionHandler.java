@@ -81,6 +81,19 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(io.jsonwebtoken.JwtException.class)
+    public ResponseEntity<Object> handleJwtException(io.jsonwebtoken.JwtException ex, WebRequest request) {
+        logger.error("JWT exception occurred:", ex);
+        String message = "Authentication token error: " + ex.getMessage();
+        return createErrorResponse("AUTH006", message, HttpStatus.UNAUTHORIZED);
+    }
+    
+    @ExceptionHandler(io.jsonwebtoken.security.WeakKeyException.class)
+    public ResponseEntity<Object> handleWeakKeyException(io.jsonwebtoken.security.WeakKeyException ex, WebRequest request) {
+        logger.error("JWT weak key exception occurred:", ex);
+        return createErrorResponse("AUTH007", "Server authentication configuration error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllUncaughtException(Exception ex, WebRequest request) {
         logger.error("Unexpected error occurred:", ex);

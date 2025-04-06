@@ -71,7 +71,14 @@ public class AuthenticationService {
         );
 
         var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.umi.tradestar.exception.AuthenticationException(
+                    com.umi.tradestar.exception.AuthenticationException.ERROR_CODE_USER_NOT_FOUND, 
+                    "User not found"));
+        
+        // Check if the user account is enabled
+        if (!user.isEnabled()) {
+            throw com.umi.tradestar.exception.AuthenticationException.userDisabled();
+        }
 
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
