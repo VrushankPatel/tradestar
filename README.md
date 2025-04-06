@@ -110,10 +110,6 @@ Here are some of the core authentication and user management endpoints:
     *   Request Body: `RegisterRequest` JSON (firstName, lastName, email, password) - `role` is ignored and set to ADMIN.
     *   Publicly accessible. **Should be secured or removed in production.**
 
-*   **Directly Enable User**: `POST /api/v1/auth/direct-enable/{email}`
-    *   Directly enables a user account in the database. Useful for development if an account becomes disabled and you cannot log in as admin.
-    *   Publicly accessible. **Should be secured or removed in production.**
-
 ## Contributing
 
 1. Fork the project

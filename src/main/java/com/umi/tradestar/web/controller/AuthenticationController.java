@@ -105,22 +105,4 @@ public class AuthenticationController {
             return ResponseEntity.notFound().build();
         }
     }
-    
-    /**
-     * Directly enables a user in the database without requiring authentication.
-     * This is a temporary solution for development purposes only.
-     *
-     * @param email the email of the user to enable
-     * @return ResponseEntity with success or failure message
-     */
-    @PostMapping("/direct-enable/{email}")
-    @Operation(summary = "Directly enable a user (development only)")
-    public ResponseEntity<String> directEnableUser(@PathVariable String email) {
-        boolean enabled = authenticationService.directEnableUser(email);
-        if (enabled) {
-            return ResponseEntity.ok("User account enabled successfully");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 }

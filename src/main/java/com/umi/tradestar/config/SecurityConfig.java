@@ -36,7 +36,19 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate", "/api/v1/auth/setup-admin", "/api/v1/auth/direct-enable/**").permitAll()
+                .requestMatchers(
+                    // Authentication endpoints
+                    "/api/v1/auth/register", 
+                    "/api/v1/auth/authenticate", 
+                    "/api/v1/auth/setup-admin", 
+                    // "/api/v1/auth/direct-enable/**", // Removed direct-enable endpoint
+                    // Swagger UI and API Docs
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    // H2 Console (if used)
+                    "/h2-console/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

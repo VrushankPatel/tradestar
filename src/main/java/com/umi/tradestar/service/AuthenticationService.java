@@ -102,22 +102,4 @@ public class AuthenticationService {
         int updated = userRepository.updateEnabledStatus(email, false);
         return updated > 0;
     }
-    
-    /**
-     * Directly enables a user in the database without requiring authentication.
-     * This is a temporary solution for development purposes only.
-     *
-     * @param email the email of the user to enable
-     * @return true if the user was enabled, false if the user was not found
-     */
-    @Transactional
-    public boolean directEnableUser(String email) {
-        return userRepository.findByEmail(email)
-                .map(user -> {
-                    user.setEnabled(true);
-                    userRepository.save(user);
-                    return true;
-                })
-                .orElse(false);
-    }
 }
