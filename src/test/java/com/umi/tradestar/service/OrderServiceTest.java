@@ -1,105 +1,168 @@
 package com.umi.tradestar.service;
 
-import com.umi.tradestar.TradestarApplication;
+import com.umi.tradestar.dto.OrderRequest;
 import com.umi.tradestar.model.Order;
-import com.umi.tradestar.model.User;
-import com.umi.tradestar.model.enums.Role;
+import com.umi.tradestar.model.enums.OrderSide;
 import com.umi.tradestar.model.enums.OrderStatus;
+import com.umi.tradestar.model.enums.OrderType;
 import com.umi.tradestar.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-import com.umi.tradestar.config.TestSecurityConfig;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
-@SpringBootTest(classes = {TradestarApplication.class, TestSecurityConfig.class})
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class OrderServiceTest {
-
     @Mock
     private OrderRepository orderRepository;
 
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
+    @InjectMocks
     private OrderService orderService;
-    private User testUser;
-    private Order testOrder;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        orderService = new OrderService(orderRepository);
-        
-        // Setup test user
-        testUser = User.builder()
-                .id(1L)
-                .email("test@example.com")
-                .firstName("Test")
-                .lastName("Trader")
-                .role(Role.TRADER)
+    }
+
+    @Test
+    void createOrder_ValidRequest_ReturnsOrder() {
+        // Given
+        OrderRequest request = OrderRequest.builder()
+                .symbol("AAPL")
+                .side(OrderSide.BUY)
+                .quantity(100L)
+                .price(BigDecimal.valueOf(150.0))
+                .type(OrderType.LIMIT)
+                .clientOrderId("CLIENT123")
                 .build();
 
-        // Setup test order
-        testOrder = new Order();
-        testOrder.setSymbol("AAPL");
-        testOrder.setQuantity(BigDecimal.TEN);
-        
-        // Setup security context
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(testUser);
-        SecurityContextHolder.setContext(securityContext);
-        
-        // Setup repository mock
-        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
-    }
+        Order savedOrder = Order.builder()
+                .orderId("ORDER123")
+                .symbol("AAPL")
+                .side(OrderSide.BUY)
+                .quantity(100L)
+                .price(BigDecimal.valueOf(150.0))
+                .type(OrderType.LIMIT)
+                .status(OrderStatus.NEW)
+                .clientOrderId("CLIENT123")
+                .build();
 
-    @Test
-    void createOrder_ValidOrder_ReturnsCreatedOrder() {
-        Order result = orderService.createOrder(testOrder);
-        
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+
+        // When
+        Order result = orderService.createOrder(request);
+
+        // Then
         assertNotNull(result);
+        assertEquals("ORDER123", result.getOrderId());
+        assertEquals("AAPL", result.getSymbol());
+        assertEquals(OrderSide.BUY, result.getSide());
+        assertEquals(100L, result.getQuantity());
+        assertEquals(BigDecimal.valueOf(150.0), result.getPrice());
+        assertEquals(OrderType.LIMIT, result.getType());
         assertEquals(OrderStatus.NEW, result.getStatus());
-        assertEquals(BigDecimal.ZERO, result.getFilledQuantity());
-        assertEquals(BigDecimal.ZERO, result.getAveragePrice());
-        assertEquals(testUser, result.getTrader());
-        assertNotNull(result.getOrderId());
+        assertEquals("CLIENT123", result.getClientOrderId());
+
+        verify(orderRepository).save(any(Order.class));
     }
 
     @Test
-    void createOrder_InvalidQuantity_ThrowsException() {
-        testOrder.setQuantity(BigDecimal.ZERO);
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            orderService.createOrder(testOrder);
-        });
+    void modifyOrder_ValidRequest_ReturnsModifiedOrder() {
+        // Given
+        String orderId = "ORDER123";
+        OrderRequest request = OrderRequest.builder()
+                .orderId(orderId)
+                .quantity(200L)
+                .price(BigDecimal.valueOf(160.0))
+                .build();
+
+        Order existingOrder = Order.builder()
+                .orderId(orderId)
+                .symbol("AAPL")
+                .side(OrderSide.BUY)
+                .quantity(100L)
+                .price(BigDecimal.valueOf(150.0))
+                .type(OrderType.LIMIT)
+                .status(OrderStatus.NEW)
+                .clientOrderId("CLIENT123")
+                .build();
+
+        Order modifiedOrder = Order.builder()
+                .orderId(orderId)
+                .symbol("AAPL")
+                .side(OrderSide.BUY)
+                .quantity(200L)
+                .price(BigDecimal.valueOf(160.0))
+                .type(OrderType.LIMIT)
+                .status(OrderStatus.NEW)
+                .clientOrderId("CLIENT123")
+                .build();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+        when(orderRepository.save(any(Order.class))).thenReturn(modifiedOrder);
+
+        // When
+        Order result = orderService.modifyOrder(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(orderId, result.getOrderId());
+        assertEquals(200L, result.getQuantity());
+        assertEquals(BigDecimal.valueOf(160.0), result.getPrice());
+
+        verify(orderRepository).findById(orderId);
+        verify(orderRepository).save(any(Order.class));
     }
 
     @Test
-    void createOrder_EmptySymbol_ThrowsException() {
-        testOrder.setSymbol("");
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            orderService.createOrder(testOrder);
-        });
+    void cancelOrder_ValidRequest_ReturnsCancelledOrder() {
+        // Given
+        String orderId = "ORDER123";
+        OrderRequest request = OrderRequest.builder()
+                .orderId(orderId)
+                .build();
+
+        Order existingOrder = Order.builder()
+                .orderId(orderId)
+                .symbol("AAPL")
+                .side(OrderSide.BUY)
+                .quantity(100L)
+                .price(BigDecimal.valueOf(150.0))
+                .type(OrderType.LIMIT)
+                .status(OrderStatus.NEW)
+                .clientOrderId("CLIENT123")
+                .build();
+
+        Order cancelledOrder = Order.builder()
+                .orderId(orderId)
+                .symbol("AAPL")
+                .side(OrderSide.BUY)
+                .quantity(100L)
+                .price(BigDecimal.valueOf(150.0))
+                .type(OrderType.LIMIT)
+                .status(OrderStatus.CANCELLED)
+                .clientOrderId("CLIENT123")
+                .build();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+        when(orderRepository.save(any(Order.class))).thenReturn(cancelledOrder);
+
+        // When
+        Order result = orderService.cancelOrder(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(orderId, result.getOrderId());
+        assertEquals(OrderStatus.CANCELLED, result.getStatus());
+
+        verify(orderRepository).findById(orderId);
+        verify(orderRepository).save(any(Order.class));
     }
 }

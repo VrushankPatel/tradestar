@@ -2,10 +2,13 @@ package com.umi.tradestar.repository;
 
 import com.umi.tradestar.model.Order;
 import com.umi.tradestar.model.User;
+import com.umi.tradestar.model.enums.OrderSide;
+import com.umi.tradestar.model.enums.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for Order entity.
@@ -14,7 +17,7 @@ import java.util.List;
  * @author VrushankPatel
  */
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, String> {
     
     /**
      * Find all orders for a specific trader.
@@ -22,7 +25,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * @param trader the user who placed the orders
      * @return list of orders for the trader
      */
-    List<Order> findByTrader(User trader);
+    List<Order> findByUser(User user);
+
+    /**
+     * Find order by its unique client order ID.
+     *
+     * @param clientOrderId the client order ID
+     * @return the order if found
+     */
+    Optional<Order> findByClientOrderId(String clientOrderId);
 
     /**
      * Find order by its unique client order ID.
@@ -39,4 +50,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * @return list of orders for the symbol
      */
     List<Order> findBySymbol(String symbol);
+
+    /**
+     * Find all orders with a specific status.
+     *
+     * @param status the order status
+     * @return list of orders with the specified status
+     */
+    List<Order> findByStatus(OrderStatus status);
+
+    /**
+     * Find all orders with a specific side.
+     *
+     * @param side the order side
+     * @return list of orders with the specified side
+     */
+    List<Order> findBySide(OrderSide side);
 }

@@ -1,9 +1,8 @@
-package com.umi.tradestar.model;
+package com.umi.tradestar.dto;
 
 import com.umi.tradestar.model.enums.OrderSide;
 import com.umi.tradestar.model.enums.OrderStatus;
 import com.umi.tradestar.model.enums.OrderType;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Entity representing a trading order
+ * DTO for order responses
  * 
  * @author VrushankPatel
  */
@@ -21,49 +20,20 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "orders")
-public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String orderId;
-
+public class OrderResponse {
+    private String id;
     private String symbol;
-    
-    @Enumerated(EnumType.STRING)
     private OrderSide side;
-    
     private Long quantity;
     private BigDecimal price;
-    
-    @Enumerated(EnumType.STRING)
     private OrderType type;
-    
-    @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    
     private String clientOrderId;
     private Long filledQuantity;
     private BigDecimal averagePrice;
-    
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-}
+    private String fixOrderId;
+    private String ouchOrderId;
+    private String itchOrderId;
+} 

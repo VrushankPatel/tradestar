@@ -1,4 +1,4 @@
-package com.umi.tradestar.web.dto;
+package com.umi.tradestar.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterResponse {
-    private String token;
-}
+public class ItchOrderCancel {
+    private String orderReference;
+    private long quantity;
+} 

@@ -1,21 +1,22 @@
-package com.umi.tradestar.web.dto;
+package com.umi.tradestar.dto;
 
+import com.umi.tradestar.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO class for authentication requests.
- * Contains the credentials required for user authentication.
- *
+ * DTO for user registration requests
+ * 
  * @author VrushankPatel
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthenticationRequest {
-    private String email;
+public class RegisterRequest {
+    private String username;
     private String password;
-}
+    private Role role;
+} 

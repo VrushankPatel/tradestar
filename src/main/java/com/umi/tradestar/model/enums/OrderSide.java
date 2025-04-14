@@ -7,5 +7,29 @@ package com.umi.tradestar.model.enums;
  */
 public enum OrderSide {
     BUY,
-    SELL
+    SELL;
+
+    public static OrderSide fromFixSide(char fixSide) {
+        return fixSide == '1' ? BUY : SELL;
+    }
+
+    public static OrderSide fromItchSide(char itchSide) {
+        return itchSide == 'B' ? BUY : SELL;
+    }
+
+    public static OrderSide fromOuchSide(char ouchSide) {
+        return ouchSide == 'B' ? BUY : SELL;
+    }
+
+    public char toFixSide() {
+        return this == BUY ? '1' : '2';
+    }
+
+    public char toItchSide() {
+        return this == BUY ? 'B' : 'S';
+    }
+
+    public char toOuchSide() {
+        return this == BUY ? 'B' : 'S';
+    }
 }

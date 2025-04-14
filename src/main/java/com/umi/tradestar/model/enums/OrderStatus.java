@@ -13,5 +13,7 @@ public enum OrderStatus {
     REJECTED,        // Order has been rejected
     EXPIRED,         // Order has expired
     PENDING_CANCEL,  // Cancellation requested but not confirmed
-    PENDING_REPLACE  // Modification requested but not confirmed
+    PENDING_REPLACE,  // Modification requested but not confirmed
+    MODIFIED,        // Order has been modified
+    REPLACED         // Order has been replaced
 }

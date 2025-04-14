@@ -2,8 +2,6 @@ package com.umi.tradestar.model;
 
 import com.umi.tradestar.model.enums.Role;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,9 +14,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Entity class representing a user in the system.
- * Implements UserDetails for Spring Security integration.
- *
+ * User entity for authentication and authorization
+ * 
  * @author VrushankPatel
  */
 @Data
@@ -28,43 +25,41 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    @NotBlank(message = "First name is required")
+    @Column(nullable = false)
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
+    @Column(nullable = false)
     private String lastName;
 
-    @Email(message = "Invalid email format")
-    @NotBlank(message = "Email is required")
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @NotBlank(message = "Password is required")
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private boolean enabled = true;
+    @Column(nullable = false)
+    private boolean enabled;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
     }
 
     @Override

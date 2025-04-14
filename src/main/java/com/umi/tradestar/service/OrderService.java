@@ -1,16 +1,20 @@
 package com.umi.tradestar.service;
 
+import com.umi.tradestar.dto.OrderRequest;
 import com.umi.tradestar.model.Order;
 import com.umi.tradestar.model.User;
+import com.umi.tradestar.model.enums.OrderSide;
 import com.umi.tradestar.model.enums.OrderStatus;
+import com.umi.tradestar.model.enums.OrderType;
 import com.umi.tradestar.repository.OrderRepository;
+import com.umi.tradestar.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,71 +24,167 @@ import java.util.UUID;
  *
  * @author VrushankPatel
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public Order createOrder(Order order) {
-        validateOrder(order);
+    public Order createOrder(OrderRequest request) {
+        log.info("Creating new order: {}", request);
+        validateOrderRequest(request);
         
-        // Set initial order properties
-        order.setOrderId(generateOrderId());
-        order.setStatus(OrderStatus.NEW);
-        order.setFilledQuantity(BigDecimal.ZERO);
-        order.setAveragePrice(BigDecimal.ZERO);
-        order.setTrader(getCurrentUser());
+        Order order = Order.builder()
+                .orderId(UUID.randomUUID().toString())
+                .symbol(request.getSymbol())
+                .side(request.getSide())
+                .quantity(request.getQuantity())
+                .price(request.getPrice())
+                .type(request.getType())
+                .status(OrderStatus.NEW)
+                .clientOrderId(request.getClientOrderId())
+                .build();
+
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order modifyOrder(OrderRequest request) {
+        log.info("Modifying order: {}", request);
+        validateOrderModification(request);
+        
+        Order order = getOrderById(request.getOrderId());
+        order.setQuantity(request.getQuantity());
+        order.setPrice(request.getPrice());
         
         return orderRepository.save(order);
     }
 
-    public List<Order> getOrdersByTrader() {
-        return orderRepository.findByTrader(getCurrentUser());
-    }
-
-    public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-    }
-
     @Transactional
-    public Order cancelOrder(Long id) {
-        Order order = getOrderById(id);
-        validateOrderCancellation(order);
+    public Order cancelOrder(OrderRequest request) {
+        log.info("Canceling order: {}", request);
+        validateOrderCancellation(request);
         
+        Order order = getOrderById(request.getOrderId());
         order.setStatus(OrderStatus.CANCELLED);
+        
         return orderRepository.save(order);
     }
 
-    private void validateOrder(Order order) {
-        if (order.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Order quantity must be positive");
-        }
+    @Transactional
+    public Order deleteOrder(OrderRequest request) {
+        log.info("Deleting order: {}", request);
+        validateOrderDeletion(request);
         
-        if (order.getSymbol() == null || order.getSymbol().trim().isEmpty()) {
-            throw new IllegalArgumentException("Symbol is required");
-        }
-        
-        // Add more validation rules as needed
+        Order order = getOrderById(request.getOrderId());
+        orderRepository.delete(order);
+        return order;
     }
 
-    private void validateOrderCancellation(Order order) {
-        if (order.getStatus() == OrderStatus.FILLED || order.getStatus() == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot cancel order in " + order.getStatus() + " state");
-        }
+    @Transactional
+    public Order replaceOrder(OrderRequest request) {
+        log.info("Replacing order: {}", request);
+        validateOrderReplacement(request);
         
-        if (!order.getTrader().equals(getCurrentUser())) {
-            throw new IllegalStateException("Not authorized to cancel this order");
-        }
+        Order oldOrder = getOrderById(request.getOrderId());
+        oldOrder.setStatus(OrderStatus.REPLACED);
+        orderRepository.save(oldOrder);
+        
+        Order newOrder = Order.builder()
+                .orderId(UUID.randomUUID().toString())
+                .symbol(oldOrder.getSymbol())
+                .side(oldOrder.getSide())
+                .quantity(request.getQuantity())
+                .price(request.getPrice())
+                .type(oldOrder.getType())
+                .status(OrderStatus.NEW)
+                .clientOrderId(request.getClientOrderId())
+                .build();
+        
+        return orderRepository.save(newOrder);
     }
 
-    private String generateOrderId() {
-        return UUID.randomUUID().toString();
+    public Order getOrderById(String orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public List<Order> getOrdersBySymbol(String symbol) {
+        return orderRepository.findBySymbol(symbol);
+    }
+
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orderRepository.findByStatus(status);
+    }
+
+    public List<Order> getOrdersBySide(OrderSide side) {
+        return orderRepository.findBySide(side);
     }
 
     private User getCurrentUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    private void validateOrderRequest(OrderRequest request) {
+        if (request.getSymbol() == null || request.getSymbol().isEmpty()) {
+            throw new IllegalArgumentException("Symbol is required");
+        }
+        if (request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (request.getPrice() == null || request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be positive");
+        }
+        if (request.getSide() == null) {
+            throw new IllegalArgumentException("Order side is required");
+        }
+        if (request.getType() == null) {
+            throw new IllegalArgumentException("Order type is required");
+        }
+    }
+
+    private void validateOrderModification(OrderRequest request) {
+        if (request.getOrderId() == null || request.getOrderId().isEmpty()) {
+            throw new IllegalArgumentException("Order ID is required");
+        }
+        if (request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (request.getPrice() == null || request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be positive");
+        }
+    }
+
+    private void validateOrderCancellation(OrderRequest request) {
+        if (request.getOrderId() == null || request.getOrderId().isEmpty()) {
+            throw new IllegalArgumentException("Order ID is required");
+        }
+    }
+
+    private void validateOrderDeletion(OrderRequest request) {
+        if (request.getOrderId() == null || request.getOrderId().isEmpty()) {
+            throw new IllegalArgumentException("Order ID is required");
+        }
+    }
+
+    private void validateOrderReplacement(OrderRequest request) {
+        if (request.getOrderId() == null || request.getOrderId().isEmpty()) {
+            throw new IllegalArgumentException("Order ID is required");
+        }
+        if (request.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (request.getPrice() == null || request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be positive");
+        }
     }
 }
